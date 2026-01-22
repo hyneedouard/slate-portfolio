@@ -1,0 +1,11 @@
+{
+  "name": "slate-portfolio-root",
+  "private": true,
+  "workspaces": [
+    "slate"
+  ],
+  "scripts": {
+    "build": "npm --workspace slate run build",
+    "dev": "npm --workspace slate run dev"
+  }
+}
