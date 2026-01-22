@@ -5,7 +5,7 @@ interface OrderFormProps {
   packageName: string;
   price: number;
   onClose: () => void;
-  onLegalClick: () => void;
+  onLegalClick: (type: 'cgv' | 'privacy') => void;
 }
 
 type Step = 'info' | 'project' | 'payment' | 'success';
@@ -30,11 +30,7 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
     hasLogo: 'no',
     inspiration: '',
     
-    // Étape 3 : Paiement (simulé)
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvv: '',
-    billingAddress: '',
+    // Étape 3 : Paiement
     acceptCGV: false,
     acceptPrivacy: false,
     acceptMarketing: false,
@@ -74,10 +70,6 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
     }
 
     if (step === 'payment') {
-      if (!formData.cardNumber.trim()) newErrors.cardNumber = 'Numéro de carte requis';
-      if (!formData.cardExpiry.trim()) newErrors.cardExpiry = 'Date d\'expiration requise';
-      if (!formData.cardCvv.trim()) newErrors.cardCvv = 'CVV requis';
-      if (!formData.billingAddress.trim()) newErrors.billingAddress = 'Adresse requise';
       if (!formData.acceptCGV) newErrors.acceptCGV = 'Vous devez accepter les CGV';
       if (!formData.acceptPrivacy) newErrors.acceptPrivacy = 'Vous devez accepter la politique de confidentialité';
     }
@@ -103,15 +95,36 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
 
   const handlePayment = async () => {
     setIsProcessing(true);
-    
-    // Simulation de traitement de paiement
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Ici vous intégreriez Stripe/PayPal
-    console.log('Order data:', formData);
-    
-    setIsProcessing(false);
-    setCurrentStep('success');
+
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          packageName,
+          price,
+          customerEmail: formData.email,
+          customerName: `${formData.firstName} ${formData.lastName}`.trim(),
+          formData,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Erreur lors de la création de la session de paiement');
+      }
+
+      if (!data?.url) {
+        throw new Error('URL de paiement Stripe manquante');
+      }
+
+      window.location.href = data.url;
+    } catch (err: any) {
+      console.error('Erreur paiement:', err);
+      alert(err?.message || 'Erreur lors du paiement. Veuillez réessayer.');
+      setIsProcessing(false);
+    }
   };
 
   const TVA_RATE = 0.21; // TVA belge = 21%
@@ -425,8 +438,7 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-900">
-                  <strong>Mode démo :</strong> Les informations de paiement ci-dessous sont simulées. 
-                  En production, utilisez Stripe ou PayPal pour des paiements sécurisés.
+                  <strong>Paiement sécurisé :</strong> En cliquant sur <strong>Payer</strong>, vous serez redirigé vers Stripe Checkout pour finaliser le paiement.
                 </div>
               </div>
 
@@ -448,7 +460,7 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
                       J'ai lu et j'accepte les{' '}
                       <button
                         type="button"
-                        onClick={() => onLegalClick?.('cgv')}
+                        onClick={() => onLegalClick('cgv')}
                         className="text-slate-900 underline hover:text-slate-700 font-semibold"
                       >
                         Conditions Générales de Vente
@@ -473,7 +485,7 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
                       J'accepte que mes données personnelles soient collectées et traitées conformément à la{' '}
                       <button
                         type="button"
-                        onClick={() => onLegalClick?.('privacy')}
+                        onClick={() => onLegalClick('privacy')}
                         className="text-slate-900 underline hover:text-slate-700 font-semibold"
                       >
                         Politique de confidentialité
@@ -502,75 +514,6 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
                   * Champs obligatoires. Vous pouvez à tout moment exercer vos droits d'accès, 
                   de rectification et de suppression de vos données en nous contactant.
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-slate-900 font-semibold mb-2 text-sm">
-                  Numéro de carte *
-                </label>
-                <input
-                  type="text"
-                  value={formData.cardNumber}
-                  onChange={(e) => handleChange('cardNumber', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent outline-none ${
-                    errors.cardNumber ? 'border-red-500' : 'border-slate-300'
-                  }`}
-                  placeholder="4242 4242 4242 4242"
-                  maxLength={19}
-                />
-                {errors.cardNumber && <p className="mt-1 text-sm text-red-600">{errors.cardNumber}</p>}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-900 font-semibold mb-2 text-sm">
-                    Date d'expiration *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.cardExpiry}
-                    onChange={(e) => handleChange('cardExpiry', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent outline-none ${
-                      errors.cardExpiry ? 'border-red-500' : 'border-slate-300'
-                    }`}
-                    placeholder="MM/YY"
-                    maxLength={5}
-                  />
-                  {errors.cardExpiry && <p className="mt-1 text-sm text-red-600">{errors.cardExpiry}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-slate-900 font-semibold mb-2 text-sm">
-                    CVV *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.cardCvv}
-                    onChange={(e) => handleChange('cardCvv', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent outline-none ${
-                      errors.cardCvv ? 'border-red-500' : 'border-slate-300'
-                    }`}
-                    placeholder="123"
-                    maxLength={3}
-                  />
-                  {errors.cardCvv && <p className="mt-1 text-sm text-red-600">{errors.cardCvv}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-900 font-semibold mb-2 text-sm">
-                  Adresse de facturation *
-                </label>
-                <textarea
-                  value={formData.billingAddress}
-                  onChange={(e) => handleChange('billingAddress', e.target.value)}
-                  rows={3}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent outline-none resize-none ${
-                    errors.billingAddress ? 'border-red-500' : 'border-slate-300'
-                  }`}
-                  placeholder="123 Rue de la Paix&#10;75001 Paris, France"
-                />
-                {errors.billingAddress && <p className="mt-1 text-sm text-red-600">{errors.billingAddress}</p>}
               </div>
             </div>
           )}
