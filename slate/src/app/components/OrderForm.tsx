@@ -127,10 +127,7 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
     }
   };
 
-  const TVA_RATE = 0.21; // TVA belge = 21%
-  const totalHTVA = price;
-  const montantTVA = totalHTVA * TVA_RATE;
-  const totalTVAC = totalHTVA + montantTVA;
+  const total = price;
 
   const steps = [
     { id: 'info', label: 'Vos informations' },
@@ -148,7 +145,7 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
               {currentStep === 'success' ? 'Commande confirmée !' : `Commander ${packageName}`}
             </h2>
             <p className="text-slate-600 text-sm mt-1">
-              {currentStep === 'success' ? 'Nous allons vous contacter très bientôt' : `Total : ${totalTVAC}€ TTC`}
+              {currentStep === 'success' ? 'Nous allons vous contacter très bientôt' : `Total : ${total.toFixed(2)}€`}
             </p>
           </div>
           <button
@@ -417,17 +414,13 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
             <div className="space-y-6 max-w-2xl mx-auto">
               <div className="bg-slate-50 rounded-lg p-6 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600">Montant HTVA</span>
-                  <span className="font-semibold text-slate-900">{totalHTVA.toFixed(2)}€</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-600">TVA (21%)</span>
-                  <span className="font-semibold text-slate-900">{montantTVA.toFixed(2)}€</span>
+                  <span className="text-slate-600">Montant</span>
+                  <span className="font-semibold text-slate-900">{total.toFixed(2)}€</span>
                 </div>
                 <div className="h-px bg-slate-200"></div>
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-slate-900">Total TVAC</span>
-                  <span className="text-2xl font-bold text-slate-900">{totalTVAC.toFixed(2)}€</span>
+                  <span className="text-lg font-bold text-slate-900">Total</span>
+                  <span className="text-2xl font-bold text-slate-900">{total.toFixed(2)}€</span>
                 </div>
               </div>
 
@@ -585,7 +578,7 @@ export function OrderForm({ packageName, price, onClose, onLegalClick }: OrderFo
               ) : currentStep === 'payment' ? (
                 <>
                   <CreditCard size={18} />
-                  Payer {totalTVAC}€
+                  Payer {total.toFixed(2)}€
                 </>
               ) : (
                 <>

@@ -24,7 +24,7 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'Données manquantes' });
     }
 
-    const priceTVAC = Math.round(price * 1.21 * 100);
+    const unitAmount = Math.round(price * 100);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -36,7 +36,7 @@ export default async function handler(req: any, res: any) {
             name: `Package ${packageName}`,
             description: 'Création de site web professionnel',
           },
-          unit_amount: priceTVAC,
+          unit_amount: unitAmount,
         },
         quantity: 1,
       }],

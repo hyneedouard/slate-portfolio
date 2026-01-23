@@ -8,7 +8,7 @@ export function Pricing({ onOrderClick }: PricingProps) {
   const packages = [
     {
       name: 'Starter',
-      price: 1200,
+      price: 1080,
       description: 'Parfait pour lancer votre présence en ligne rapidement',
       features: [
         'Landing page responsive (1 page)',
@@ -22,7 +22,7 @@ export function Pricing({ onOrderClick }: PricingProps) {
     },
     {
       name: 'Professional',
-      price: 2800,
+      price: 2520,
       description: 'Pour un site complet avec plusieurs pages',
       features: [
         'Site multi-pages (jusqu\'à 5 pages)',
@@ -36,7 +36,7 @@ export function Pricing({ onOrderClick }: PricingProps) {
     },
     {
       name: 'Premium',
-      price: 5500,
+      price: 4950,
       description: 'Application web complexe et personnalisée',
       features: [
         'Application web complète',
@@ -49,9 +49,6 @@ export function Pricing({ onOrderClick }: PricingProps) {
       highlighted: false,
     },
   ];
-
-  // TVA belge = 21%
-  const TVA_RATE = 0.21;
 
   return (
     <section id="tarifs" className="py-32 px-6 bg-white relative overflow-hidden">
@@ -104,11 +101,8 @@ export function Pricing({ onOrderClick }: PricingProps) {
                     <div>
                       <div className="flex items-baseline gap-2 mb-2">
                         <span className="text-5xl font-bold text-slate-900">{pkg.price}€</span>
-                        <span className="text-slate-600">HTVA</span>
+                        <span className="text-slate-600">HT</span>
                       </div>
-                      <p className="text-sm text-slate-500">
-                        {Math.round(pkg.price * (1 + TVA_RATE))}€ TVAC (TVA 21% incluse)
-                      </p>
                       <p className="text-slate-600 mt-4">{pkg.description}</p>
                     </div>
                   </div>
